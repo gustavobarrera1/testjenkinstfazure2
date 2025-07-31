@@ -1,13 +1,13 @@
 variable "location" {
-  default = "eastus"
+  default = "eastus2"
 }
 
 variable "resource_group_name" {
-  default = "rg-containerapp"
+  default = "rg-gbarrera"
 }
 
 variable "acr_name" {
-  default = "acrtfexample"
+  default = "acrtfgbarrera"
 }
 
 variable "containerapp_name" {

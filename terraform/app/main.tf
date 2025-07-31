@@ -8,7 +8,7 @@ provider "azurerm" {
 }
 
 data "azurerm_resource_group" "rg" {
-  name = "rg-containerapp"
+  name = "rg-gbarrera"
 }
 
 data "azurerm_container_registry" "acr" {
