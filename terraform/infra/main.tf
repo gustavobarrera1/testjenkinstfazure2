@@ -1,7 +1,8 @@
 provider "azurerm" {
   features {}
-
+  
   subscription_id = "4dc63939-80f6-4f50-bd19-bc605cf2786d"
+  #subscription_id = var.subscription_id
   client_id       = var.client_id
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
@@ -16,7 +17,7 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = data.azurerm_resource_group.rg.location
   sku                 = "Basic"
-  admin_enabled       = true
+  admin_enabled       = true 
 }
 
 resource "azurerm_log_analytics_workspace" "log" {
