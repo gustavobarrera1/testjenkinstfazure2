@@ -3,10 +3,10 @@ pipeline {
 
   environment {
     // Variables para Terraform (si decides no usar .tfvars)
-    TF_VAR_subscription_id = credentials('azuresubscription_id')
     TF_VAR_client_id       = 'b24fa600-ff3d-414a-9802-79047c858bce'
-    TF_VAR_client_secret   = credentials('azureclient_secret')
+    TF_VAR_client_secret   = credentials('azureclient_secret') // Usar el ID de credencial de Jenkins
     TF_VAR_tenant_id       = '8ee9d595-4f94-41e5-a20c-b29b4e64578b'
+    TF_VAR_subscription_id = credentials('azuresubscription_id')
 
     // Para Azure CLI (az login)
     AZURE_CLIENT_ID        = 'b24fa600-ff3d-414a-9802-79047c858bce'
@@ -20,38 +20,25 @@ pipeline {
   }
 
   stages {
-    stage('Debug Jenkins Secret') {
+    stage('Login to Azure & ACR') {
       steps {
-        echo "AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET.length()} chars"
-      }
-    }
-    
-    stage('Verificar Variables TF') {
-      steps {
-        sh '''
-        echo "TF_VAR_subscription_id=$TF_VAR_subscription_id"
-        echo "TF_VAR_client_id=$TF_VAR_client_id"
-        echo "TF_VAR_tenant_id=$TF_VAR_tenant_id"
-        '''
-      }
-    }
-    
-    stage('Terraform Init & ACR Deployment') {
-      steps {
-        dir('terraform/infra') {
-          sh 'terraform init'
-          sh 'terraform apply -auto-approve'
+        // Enlaza credenciales para que sean accesibles en el shell
+        withCredentials([string(credentialsId: 'azureclient_secret', variable: 'AZURE_CLIENT_SECRET')]) {
+            sh '''
+            az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+            az acr login --name $ACR_NAME
+            '''
         }
       }
     }
-
-    stage('Login to Azure & ACR') {
+    
+    stage('Deploy Terraform Infra') {
       steps {
-        sh '''
-        az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-        az account show
-        az acr login --name $ACR_NAME
-        '''
+        dir('terraform/infra') {
+          // Terraform Init no necesita las variables de cliente para la autenticación si ya estás logueado en az
+          sh 'terraform init'
+          sh 'terraform apply -auto-approve'
+        }
       }
     }
 
