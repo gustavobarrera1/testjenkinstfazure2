@@ -18,11 +18,8 @@ pipeline {
 
           dir('terraform/infra') {
             sh """
-              cat > credentials.auto.tfvars <<EOF
-              client_id       = "${env.TF_VAR_client_id}"
+              cat > credentials.auto.tfvars <<EOF             
               client_secret   = "${env.TF_VAR_client_secret}"
-              tenant_id       = "${env.TF_VAR_tenant_id}"
-              subscription_id = "${env.TF_VAR_subscription_id}"
 EOF
             """
 
@@ -58,10 +55,7 @@ EOF
           dir('terraform/app') {
             sh """
               cat > credentials.auto.tfvars <<EOF
-              client_id       = "${env.TF_VAR_client_id}"
               client_secret   = "${env.TF_VAR_client_secret}"
-              tenant_id       = "${env.TF_VAR_tenant_id}"
-              subscription_id = "${env.TF_VAR_subscription_id}"
 EOF
             """
 

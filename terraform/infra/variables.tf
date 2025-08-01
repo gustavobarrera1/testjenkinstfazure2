@@ -14,15 +14,17 @@ variable "containerapp_name" {
   default = "my-containerapp"
 }
 
+##
+
 variable "client_id" {
-  type        = string
+  default        = "b24fa600-ff3d-414a-9802-79047c858bce"
 }
 variable "client_secret" {
   type        = string
 }
 variable "tenant_id" {
-  type        = string
+  default        = "8ee9d595-4f94-41e5-a20c-b29b4e64578b"
 }
 variable "subscription_id" {
-  type        = string
+  default = "4dc63939-80f6-4f50-bd19-bc605cf2786d"
 }
