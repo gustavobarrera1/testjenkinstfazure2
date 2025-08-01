@@ -10,50 +10,54 @@ pipeline {
           string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
           string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
-          sh '''
-            # Limpiar la caché de autenticación de la CLI de Azure
+          // Depuración rápida de si se cargaron las credenciales
+          echo "Credenciales cargadas:"
+          echo "TF_VAR_client_id: ${env.TF_VAR_client_id ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_client_secret: ${env.TF_VAR_client_secret ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_tenant_id: ${env.TF_VAR_tenant_id ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_subscription_id: ${env.TF_VAR_subscription_id ? 'OK' : 'MISSING'}"
+
+          sh """
             az account clear
 
-            # Autenticarse con el Service Principal correcto.
-            # La CLI de Azure puede usar los nombres de variables de Terraform.
-            az login --service-principal -u $TF_VAR_client_id -p $TF_VAR_client_secret --tenant $TF_VAR_tenant_id
-            az account set --subscription $TF_VAR_subscription_id
-          '''
+            echo "Autenticando con Azure CLI..."
+            az login --service-principal -u ${env.TF_VAR_client_id} -p ${env.TF_VAR_client_secret} --tenant ${env.TF_VAR_tenant_id}
+            az account set --subscription ${env.TF_VAR_subscription_id}
+          """
 
-          // --- Inicio del bloque de depuración ---
-          sh '''
+          sh """
             echo "Debugging Terraform variables..."
-            echo "TF_VAR_client_id: $TF_VAR_client_id"
-            echo "TF_VAR_tenant_id: $TF_VAR_tenant_id"
-            echo "TF_VAR_subscription_id: $TF_VAR_subscription_id"
-            echo "TF_VAR_client_secret: $TF_VAR_client_secret"
-          '''
-          // --- Fin del bloque de depuración ---
+            echo "TF_VAR_client_id: ${env.TF_VAR_client_id}"
+            echo "TF_VAR_tenant_id: ${env.TF_VAR_tenant_id}"
+            echo "TF_VAR_subscription_id: ${env.TF_VAR_subscription_id}"
+            echo "TF_VAR_client_secret: ${env.TF_VAR_client_secret}"
+          """
 
           dir('terraform/infra') {
-            // Terraform ahora tomará las variables TF_VAR_* automáticamente.
             sh 'terraform init'
-            sh 'terraform apply \
-                -var="client_id=$TF_VAR_client_id" \
-                -var="client_secret=$TF_VAR_client_secret" \
-                -var="tenant_id=$TF_VAR_tenant_id" \
-                -var="subscription_id=$TF_VAR_subscription_id" \
-                -auto-approve'
+            sh """
+              terraform apply \
+                -var="client_id=${env.TF_VAR_client_id}" \
+                -var="client_secret=${env.TF_VAR_client_secret}" \
+                -var="tenant_id=${env.TF_VAR_tenant_id}" \
+                -var="subscription_id=${env.TF_VAR_subscription_id}" \
+                -auto-approve
+            """
           }
         }
       }
     }
-    
+
     stage('Build and Push Docker Image') {
       steps {
         dir('docker') {
-          // El az acr login usará la sesión de az ya iniciada.
-          sh '''
+          sh """
             az acr login --name acrtfgbarrera
-            ACR_LOGIN_SERVER=$(az acr show --name acrtfgbarrera --query loginServer -o tsv)
-            docker build -t $ACR_LOGIN_SERVER/myapp:latest .
-            docker push $ACR_LOGIN_SERVER/myapp:latest
-          '''
+            ACR_LOGIN_SERVER=\$(az acr show --name acrtfgbarrera --query loginServer -o tsv)
+            echo "ACR login server: \$ACR_LOGIN_SERVER"
+            docker build -t \$ACR_LOGIN_SERVER/myapp:latest .
+            docker push \$ACR_LOGIN_SERVER/myapp:latest
+          """
         }
       }
     }
@@ -66,26 +70,30 @@ pipeline {
           string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
           string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
-          dir('terraform/app') {
-            
-          // --- Inicio del bloque de depuración ---
-          sh '''
-            echo "Debugging Terraform variables..."
-            echo "TF_VAR_client_id: $TF_VAR_client_id"
-            echo "TF_VAR_tenant_id: $TF_VAR_tenant_id"
-            echo "TF_VAR_subscription_id: $TF_VAR_subscription_id"
-            echo "TF_VAR_client_secret: $TF_VAR_client_secret"
-          '''
-          // --- Fin del bloque de depuración ---
+          echo "Credenciales cargadas:"
+          echo "TF_VAR_client_id: ${env.TF_VAR_client_id ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_client_secret: ${env.TF_VAR_client_secret ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_tenant_id: ${env.TF_VAR_tenant_id ? 'OK' : 'MISSING'}"
+          echo "TF_VAR_subscription_id: ${env.TF_VAR_subscription_id ? 'OK' : 'MISSING'}"
 
-            // Terraform tomará las variables TF_VAR_* automáticamente.
+          dir('terraform/app') {
+            sh """
+              echo "Debugging Terraform variables..."
+              echo "TF_VAR_client_id: ${env.TF_VAR_client_id}"
+              echo "TF_VAR_tenant_id: ${env.TF_VAR_tenant_id}"
+              echo "TF_VAR_subscription_id: ${env.TF_VAR_subscription_id}"
+              echo "TF_VAR_client_secret: ${env.TF_VAR_client_secret}"
+            """
+
             sh 'terraform init'
-            sh 'terraform apply \
-                -var="client_id=$TF_VAR_client_id" \
-                -var="client_secret=$TF_VAR_client_secret" \
-                -var="tenant_id=$TF_VAR_tenant_id" \
-                -var="subscription_id=$TF_VAR_subscription_id" \
-                -auto-approve'
+            sh """
+              terraform apply \
+                -var="client_id=${env.TF_VAR_client_id}" \
+                -var="client_secret=${env.TF_VAR_client_secret}" \
+                -var="tenant_id=${env.TF_VAR_tenant_id}" \
+                -var="subscription_id=${env.TF_VAR_subscription_id}" \
+                -auto-approve
+            """
           }
         }
       }
