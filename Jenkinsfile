@@ -2,17 +2,7 @@ pipeline {
   agent any
 
   environment {
-    // Variables para Terraform (si decides no usar .tfvars)
-    TF_VAR_client_id       = 'b24fa600-ff3d-414a-9802-79047c858bce'
-    TF_VAR_client_secret   = credentials('azureclient_secret') // Usar el ID de credencial de Jenkins
-    TF_VAR_tenant_id       = '8ee9d595-4f94-41e5-a20c-b29b4e64578b'
-    TF_VAR_subscription_id = credentials('azuresubscription_id')
-
-    // Para Azure CLI (az login)
-    AZURE_CLIENT_ID        = 'b24fa600-ff3d-414a-9802-79047c858bce'
-    AZURE_CLIENT_SECRET    = credentials('azureclient_secret')
-    AZURE_TENANT_ID        = '8ee9d595-4f94-41e5-a20c-b29b4e64578b'
-    
+    // Variables no secretas. Las credenciales se inyectan en los 'steps'.
     ACR_NAME               = 'acrtfgbarrera'
     IMAGE_NAME             = 'myapp'
     IMAGE_TAG              = 'latest'
@@ -20,35 +10,40 @@ pipeline {
   }
 
   stages {
-    stage('Login to Azure & ACR') {
+    stage('Azure Login & Terraform Infra') {
       steps {
-        // Enlaza credenciales para que sean accesibles en el shell
-        withCredentials([string(credentialsId: 'azureclient_secret', variable: 'AZURE_CLIENT_SECRET')]) {
-            sh '''
+        // Se exponen todas las credenciales de Azure en este bloque.
+        withCredentials([
+          string(credentialsId: 'azureclient_id', variable: 'AZURE_CLIENT_ID'),
+          string(credentialsId: 'azureclient_secret', variable: 'AZURE_CLIENT_SECRET'),
+          string(credentialsId: 'azuretenant_id', variable: 'AZURE_TENANT_ID'),
+          string(credentialsId: 'azuresubscription_id', variable: 'AZURE_SUBSCRIPTION_ID')
+        ]) {
+          // El login a Azure CLI se hace con las variables inyectadas.
+          sh '''
             az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-            '''
+            az account set --subscription $AZURE_SUBSCRIPTION_ID
+          '''
+
+          // Se inicializa y aplica la infraestructura de Terraform.
+          // Terraform detecta la autenticación de Azure CLI y las variables de entorno de Azure.
+          dir('terraform/infra') {
+            sh 'terraform init'
+            sh 'terraform apply -auto-approve'
+          }
         }
       }
     }
     
-    stage('Deploy Terraform Infra') {
-      steps {
-        dir('terraform/infra') {
-          // Terraform Init no necesita las variables de cliente para la autenticación si ya estás logueado en az
-          sh 'terraform init'
-          sh 'terraform apply -auto-approve'
-        }
-      }
-    }
-
     stage('Build and Push Docker Image') {
       steps {
         dir('docker') {
+          // El login a ACR se hace con la sesión de az ya iniciada.
           sh '''
-          az acr login --name $ACR_NAME
-          ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
-          docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
-          docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+            az acr login --name $ACR_NAME
+            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+            docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
+            docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
           '''
         }
       }
@@ -57,6 +52,7 @@ pipeline {
     stage('Deploy Container App') {
       steps {
         dir('terraform/app') {
+          // Terraform para la app usará la sesión de az activa.
           sh 'terraform init'
           sh 'terraform apply -auto-approve'
         }
