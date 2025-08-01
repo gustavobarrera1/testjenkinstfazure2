@@ -5,21 +5,23 @@ pipeline {
     stage('Azure Login & Terraform Infra') {
       steps {
         withCredentials([
-          string(credentialsId: 'azureclient_id', variable: 'AZURE_CLIENT_ID'),
-          string(credentialsId: 'azureclient_secret', variable: 'AZURE_CLIENT_SECRET'),
-          string(credentialsId: 'azuretenant_id', variable: 'AZURE_TENANT_ID'),
-          string(credentialsId: 'azuresubscription_id', variable: 'AZURE_SUBSCRIPTION_ID')
+          string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
+          string(credentialsId: 'azureclient_secret', variable: 'TF_VAR_client_secret'),
+          string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
+          string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
           sh '''
             # Limpiar la caché de autenticación de la CLI de Azure
             az account clear
 
-            # Autenticarse con el Service Principal correcto
-            az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-            az account set --subscription $AZURE_SUBSCRIPTION_ID
+            # Autenticarse con el Service Principal correcto.
+            # La CLI de Azure puede usar los nombres de variables de Terraform.
+            az login --service-principal -u $TF_VAR_client_id -p $TF_VAR_client_secret --tenant $TF_VAR_tenant_id
+            az account set --subscription $TF_VAR_subscription_id
           '''
 
           dir('terraform/infra') {
+            // Terraform ahora tomará las variables TF_VAR_* automáticamente.
             sh 'terraform init'
             sh 'terraform apply -auto-approve'
           }
@@ -44,12 +46,13 @@ pipeline {
     stage('Deploy Container App') {
       steps {
         withCredentials([
-          string(credentialsId: 'azureclient_id', variable: 'AZURE_CLIENT_ID'),
-          string(credentialsId: 'azureclient_secret', variable: 'AZURE_CLIENT_SECRET'),
-          string(credentialsId: 'azuretenant_id', variable: 'AZURE_TENANT_ID'),
-          string(credentialsId: 'azuresubscription_id', variable: 'AZURE_SUBSCRIPTION_ID')
+          string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
+          string(credentialsId: 'azureclient_secret', variable: 'TF_VAR_client_secret'),
+          string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
+          string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
           dir('terraform/app') {
+            // Terraform tomará las variables TF_VAR_* automáticamente.
             sh 'terraform init'
             sh 'terraform apply -auto-approve'
           }
