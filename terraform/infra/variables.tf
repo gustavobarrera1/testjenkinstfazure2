@@ -14,7 +14,15 @@ variable "containerapp_name" {
   default = "my-containerapp"
 }
 
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
-variable "subscription_id" {}
+variable "client_id" {
+  type        = string
+}
+variable "client_secret" {
+  type        = string
+}
+variable "tenant_id" {
+  type        = string
+}
+variable "subscription_id" {
+  type        = string
+}
