@@ -20,6 +20,16 @@ pipeline {
             az account set --subscription $TF_VAR_subscription_id
           '''
 
+          // --- Inicio del bloque de depuración ---
+          sh '''
+            echo "Debugging Terraform variables..."
+            echo "TF_VAR_client_id: $TF_VAR_client_id"
+            echo "TF_VAR_tenant_id: $TF_VAR_tenant_id"
+            echo "TF_VAR_subscription_id: $TF_VAR_subscription_id"
+            echo "TF_VAR_client_secret: $TF_VAR_client_secret"
+          '''
+          // --- Fin del bloque de depuración ---
+
           dir('terraform/infra') {
             // Terraform ahora tomará las variables TF_VAR_* automáticamente.
             sh 'terraform init'
@@ -52,6 +62,17 @@ pipeline {
           string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
           dir('terraform/app') {
+            
+          // --- Inicio del bloque de depuración ---
+          sh '''
+            echo "Debugging Terraform variables..."
+            echo "TF_VAR_client_id: $TF_VAR_client_id"
+            echo "TF_VAR_tenant_id: $TF_VAR_tenant_id"
+            echo "TF_VAR_subscription_id: $TF_VAR_subscription_id"
+            echo "TF_VAR_client_secret: $TF_VAR_client_secret"
+          '''
+          // --- Fin del bloque de depuración ---
+
             // Terraform tomará las variables TF_VAR_* automáticamente.
             sh 'terraform init'
             sh 'terraform apply -auto-approve'
