@@ -23,8 +23,15 @@ pipeline {
 EOF
             """
 
-            sh 'terraform init'
-            sh 'terraform apply -auto-approve'
+          sh """
+            terraform init
+            terraform apply \
+              -var="client_id=${TF_VAR_client_id}" \
+              -var="client_secret=${TF_VAR_client_secret}" \
+              -var="tenant_id=${TF_VAR_tenant_id}" \
+              -var="subscription_id=${TF_VAR_subscription_id}" \
+              -auto-approve
+          """
           }
         }
       }
@@ -59,8 +66,15 @@ EOF
 EOF
             """
 
-            sh 'terraform init'
-            sh 'terraform apply -auto-approve'
+          sh """
+            terraform init
+            terraform apply \
+              -var="client_id=${TF_VAR_client_id}" \
+              -var="client_secret=${TF_VAR_client_secret}" \
+              -var="tenant_id=${TF_VAR_tenant_id}" \
+              -var="subscription_id=${TF_VAR_subscription_id}" \
+              -auto-approve
+          """
           }
         }
       }
