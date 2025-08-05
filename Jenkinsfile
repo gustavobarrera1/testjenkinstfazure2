@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   stages {
-    stage('Azure Login & Terraform Infra') {
+    stage('Terraform Infra Deployment') {
       steps {
         withCredentials([
           string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
@@ -10,24 +10,18 @@ pipeline {
           string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
           string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
         ]) {
-          sh """
-            az account clear
-            az login --service-principal -u ${env.TF_VAR_client_id} -p ${env.TF_VAR_client_secret} --tenant ${env.TF_VAR_tenant_id}
-            az account set --subscription ${env.TF_VAR_subscription_id}
-          """
-
           dir('terraform/infra') {
             sh """
-              cat > credentials.auto.tfvars <<EOF
-client_id       = "${TF_VAR_client_id}"
-client_secret   = "${TF_VAR_client_secret}"
-tenant_id       = "${TF_VAR_tenant_id}"
-subscription_id = "${TF_VAR_subscription_id}"
-EOF
-            """
+              export ARM_CLIENT_ID=${TF_VAR_client_id}
+              export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
+              export ARM_TENANT_ID=${TF_VAR_tenant_id}
+              export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
 
-            sh 'terraform init'
-            sh 'terraform apply -auto-approve'
+              echo Using subscription: \$ARM_SUBSCRIPTION_ID
+
+              terraform init
+              terraform apply -auto-approve
+            """
           }
         }
       }
@@ -46,7 +40,7 @@ EOF
       }
     }
 
-    stage('Deploy Container App') {
+    stage('Terraform App Deployment') {
       steps {
         withCredentials([
           string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
@@ -56,16 +50,16 @@ EOF
         ]) {
           dir('terraform/app') {
             sh """
-              cat > credentials.auto.tfvars <<EOF
-client_id       = "${TF_VAR_client_id}"
-client_secret   = "${TF_VAR_client_secret}"
-tenant_id       = "${TF_VAR_tenant_id}"
-subscription_id = "${TF_VAR_subscription_id}"
-EOF
-            """
+              export ARM_CLIENT_ID=${TF_VAR_client_id}
+              export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
+              export ARM_TENANT_ID=${TF_VAR_tenant_id}
+              export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
 
-            sh 'terraform init'
-            sh 'terraform apply -auto-approve'
+              echo Using subscription: \$ARM_SUBSCRIPTION_ID
+
+              terraform init
+              terraform apply -auto-approve
+            """
           }
         }
       }
