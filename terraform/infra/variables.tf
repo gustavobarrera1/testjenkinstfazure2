@@ -7,7 +7,7 @@ variable "resource_group_name" {
 }
 
 variable "acr_name" {
-  default = "acrtfgbarrera"
+  default = "acrtfgbarrera2"
 }
 
 variable "containerapp_name" {

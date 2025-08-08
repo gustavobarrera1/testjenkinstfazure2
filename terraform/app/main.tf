@@ -12,7 +12,7 @@ data "azurerm_resource_group" "rg" {
 }
 
 data "azurerm_container_registry" "acr" {
-  name                = "acrtfgbarrera"
+  name                = "acrtfgbarrera2"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
