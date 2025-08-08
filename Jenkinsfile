@@ -3,8 +3,11 @@ pipeline {
 
   environment {
     // Variables para Terraform (si decides no usar .tfvars)
+    TF_VAR_client_id       = credentials('azureclient_id')
     TF_VAR_client_secret   = credentials('azureclient_secret')
 
+    TF_VAR_subscription_id = credentials('azuresubscription_id')
+    TF_VAR_tenant_id       = credentials('azuretenant_id')
     // Para Azure CLI (az login)
     // AZURE_CLIENT_SECRET    = credentials('azureclient_secret')
   }
@@ -14,19 +17,19 @@ pipeline {
       steps {
         dir('terraform/infra') {
           sh """
-            export ARM_CLIENT_ID=39a8af82-58e1-4533-ac23-0a0022c8e745
+            export ARM_CLIENT_ID=${TF_VAR_client_id}
             export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
-            export ARM_TENANT_ID=68e258f3-5801-48ce-9128-520f28ecc0a4
-            export ARM_SUBSCRIPTION_ID=9734eafc-3f58-4aa1-9930-1d6a4a9c500c
+            export ARM_TENANT_ID=${TF_VAR_tenant_id}
+            export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
 
             echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
             terraform init
             terraform apply \
-              -var="client_id=39a8af82-58e1-4533-ac23-0a0022c8e745" \
+              -var="client_id=${TF_VAR_client_id}" \
               -var="client_secret=${TF_VAR_client_secret}" \
-              -var="tenant_id=68e258f3-5801-48ce-9128-520f28ecc0a4" \
-              -var="subscription_id=9734eafc-3f58-4aa1-9930-1d6a4a9c500c" \
+              -var="tenant_id=${TF_VAR_tenant_id}" \
+              -var="subscription_id=${TF_VAR_subscription_id}" \
               -auto-approve
           """
         }
@@ -50,19 +53,19 @@ pipeline {
       steps {
         dir('terraform/app') {
           sh """
-            export ARM_CLIENT_ID=39a8af82-58e1-4533-ac23-0a0022c8e745
+            export ARM_CLIENT_ID=${TF_VAR_client_id}
             export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
-            export ARM_TENANT_ID=68e258f3-5801-48ce-9128-520f28ecc0a4
-            export ARM_SUBSCRIPTION_ID=9734eafc-3f58-4aa1-9930-1d6a4a9c500c
+            export ARM_TENANT_ID=${TF_VAR_tenant_id}
+            export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
 
             echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
             terraform init
             terraform apply \
-              -var="client_id=39a8af82-58e1-4533-ac23-0a0022c8e745" \
+              -var="client_id=${TF_VAR_client_id}" \
               -var="client_secret=${TF_VAR_client_secret}" \
-              -var="tenant_id=68e258f3-5801-48ce-9128-520f28ecc0a4" \
-              -var="subscription_id=9734eafc-3f58-4aa1-9930-1d6a4a9c500c" \
+              -var="tenant_id=${TF_VAR_tenant_id}" \
+              -var="subscription_id=${TF_VAR_subscription_id}" \
               -auto-approve
           """
         }
