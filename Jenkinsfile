@@ -5,10 +5,10 @@ pipeline {
     stage('Terraform Infra Deployment') {
       steps {
         withCredentials([
-          string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
+          string(credentialsId: 'azureclient_id', variable: '39a8af82-58e1-4533-ac23-0a0022c8e745'),
           string(credentialsId: 'azureclient_secret', variable: 'TF_VAR_client_secret'),
-          string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
-          string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
+          string(credentialsId: 'azuretenant_id', variable: '68e258f3-5801-48ce-9128-520f28ecc0a4'),
+          string(credentialsId: 'azuresubscription_id', variable: '9734eafc-3f58-4aa1-9930-1d6a4a9c500c')
         ]) {
           dir('terraform/infra') {
             sh """
@@ -20,7 +20,12 @@ pipeline {
               echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
               terraform init
-              terraform apply -auto-approve
+              terraform apply \
+                -var="client_id=39a8af82-58e1-4533-ac23-0a0022c8e745" \
+                -var="client_secret=${TF_VAR_client_secret}" \
+                -var="tenant_id=68e258f3-5801-48ce-9128-520f28ecc0a4" \
+                -var="subscription_id=9734eafc-3f58-4aa1-9930-1d6a4a9c500c" \
+                -auto-approve
             """
           }
         }
@@ -43,10 +48,10 @@ pipeline {
     stage('Terraform App Deployment') {
       steps {
         withCredentials([
-          string(credentialsId: 'azureclient_id', variable: 'TF_VAR_client_id'),
+          string(credentialsId: 'azureclient_id', variable: '39a8af82-58e1-4533-ac23-0a0022c8e745'),
           string(credentialsId: 'azureclient_secret', variable: 'TF_VAR_client_secret'),
-          string(credentialsId: 'azuretenant_id', variable: 'TF_VAR_tenant_id'),
-          string(credentialsId: 'azuresubscription_id', variable: 'TF_VAR_subscription_id')
+          string(credentialsId: 'azuretenant_id', variable: '68e258f3-5801-48ce-9128-520f28ecc0a4'),
+          string(credentialsId: 'azuresubscription_id', variable: '9734eafc-3f58-4aa1-9930-1d6a4a9c500c')
         ]) {
           dir('terraform/app') {
             sh """
@@ -58,7 +63,12 @@ pipeline {
               echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
               terraform init
-              terraform apply -auto-approve
+              terraform apply \
+                -var="client_id=39a8af82-58e1-4533-ac23-0a0022c8e745" \
+                -var="client_secret=${TF_VAR_client_secret}" \
+                -var="tenant_id=68e258f3-5801-48ce-9128-520f28ecc0a4" \
+                -var="subscription_id=9734eafc-3f58-4aa1-9930-1d6a4a9c500c" \
+                -auto-approve
             """
           }
         }
