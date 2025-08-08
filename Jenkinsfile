@@ -37,8 +37,8 @@ pipeline {
       steps {
         dir('docker') {
           sh """
-            az acr login --name acrtfgbarrera
-            ACR_LOGIN_SERVER=\$(az acr show --name acrtfgbarrera --query loginServer -o tsv)
+            az acr login --name acrtfgbarrera2
+            ACR_LOGIN_SERVER=\$(az acr show --name acrtfgbarrera2 --query loginServer -o tsv)
             docker build -t \$ACR_LOGIN_SERVER/myapp:latest .
             docker push \$ACR_LOGIN_SERVER/myapp:latest
           """
