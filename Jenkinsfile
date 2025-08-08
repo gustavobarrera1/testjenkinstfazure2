@@ -2,14 +2,11 @@ pipeline {
   agent any
 
   environment {
-    // Variables para Terraform (si decides no usar .tfvars)
     TF_VAR_client_id       = credentials('azureclient_id')
     TF_VAR_client_secret   = credentials('azureclient_secret')
 
     TF_VAR_subscription_id = credentials('azuresubscription_id')
     TF_VAR_tenant_id       = credentials('azuretenant_id')
-    // Para Azure CLI (az login)
-    // AZURE_CLIENT_SECRET    = credentials('azureclient_secret')
   }
 
   stages {
@@ -21,8 +18,6 @@ pipeline {
             export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
             export ARM_TENANT_ID=${TF_VAR_tenant_id}
             export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
-
-            echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
             terraform init
             terraform apply \
@@ -57,8 +52,6 @@ pipeline {
             export ARM_CLIENT_SECRET=${TF_VAR_client_secret}
             export ARM_TENANT_ID=${TF_VAR_tenant_id}
             export ARM_SUBSCRIPTION_ID=${TF_VAR_subscription_id}
-
-            echo Using subscription: \$ARM_SUBSCRIPTION_ID
 
             terraform init
             terraform apply \
