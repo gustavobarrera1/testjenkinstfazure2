@@ -24,7 +24,7 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_container_app" "app" {
-  name                         = var.container_app
+  name                         = var.containerapp_name
   container_app_environment_id = "/subscriptions/${var.subscription_id}/resourceGroups/${data.azurerm_resource_group.rg.name}/providers/Microsoft.App/managedEnvironments/my-containerapp-env"
   resource_group_name          = data.azurerm_resource_group.rg.name
   revision_mode                = "Single"

@@ -14,3 +14,7 @@ variable "acr_name" {
 variable "app_identity" {
   default = "my-containerapp-identity"
 }
+
+variable "containerapp_name" {
+  default = "my-containerapp"
+}
