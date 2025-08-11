@@ -7,6 +7,10 @@ pipeline {
 
     TF_VAR_subscription_id = credentials('azuresubscription_id')
     TF_VAR_tenant_id       = credentials('azuretenant_id')
+
+    ACR_NAME               = 'acrtfgbarrera2'
+    IMAGE_NAME             = 'myapp'
+    IMAGE_TAG              = 'latest'
   }
 
   stages {
@@ -35,10 +39,10 @@ pipeline {
       steps {
         dir('docker') {
           sh """
-            az acr login --name acrtfgbarrera2
-            ACR_LOGIN_SERVER=\$(az acr show --name acrtfgbarrera2 --query loginServer -o tsv)
-            docker build -t \$ACR_LOGIN_SERVER/myapp:latest .
-            docker push \$ACR_LOGIN_SERVER/myapp:latest
+            az acr login --name $ACR_NAME
+            ACR_LOGIN_SERVER=\$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+            docker build -t \$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
+            docker push \$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
           """
         }
       }

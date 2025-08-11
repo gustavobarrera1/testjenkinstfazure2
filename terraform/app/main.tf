@@ -7,12 +7,12 @@ data "azurerm_resource_group" "rg" {
 }
 
 data "azurerm_container_registry" "acr" {
-  name                = "acrtfgbarrera2"
+  name                = var.acr_name
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
 resource "azurerm_user_assigned_identity" "app_identity" {
-  name                = "my-containerapp-identity"
+  name                = var.app_identity
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = data.azurerm_resource_group.rg.location
 }
@@ -24,7 +24,7 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_container_app" "app" {
-  name                         = "my-containerapp"
+  name                         = var.container_app
   container_app_environment_id = "/subscriptions/${var.subscription_id}/resourceGroups/${data.azurerm_resource_group.rg.name}/providers/Microsoft.App/managedEnvironments/my-containerapp-env"
   resource_group_name          = data.azurerm_resource_group.rg.name
   revision_mode                = "Single"

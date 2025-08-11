@@ -6,3 +6,11 @@ variable "tenant_id" {
 }
 variable "subscription_id" {
 }
+
+variable "acr_name" {
+  default = "acrtfgbarrera2"
+}
+
+variable "app_identity" {
+  default = "my-containerapp-identity"
+}
