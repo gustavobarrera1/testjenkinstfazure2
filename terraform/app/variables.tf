@@ -7,14 +7,14 @@ variable "tenant_id" {
 variable "subscription_id" {
 }
 
-variable "acr_name" {
-  default = "acrtfgbarrera2"
+variable "app_identity" {
+  type = string
 }
 
-variable "app_identity" {
-  default = "my-containerapp-identity"
+variable "acr_name" {
+  type = string
 }
 
 variable "containerapp_name" {
-  default = "my-containerapp"
+  type = string
 }
